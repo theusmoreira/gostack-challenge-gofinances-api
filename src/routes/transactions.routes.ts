@@ -51,10 +51,12 @@ transactionsRouter.post(
   upload.single('file'),
   async (request, response) => {
     const importTransaction = new ImportTransactionsService();
+    const transactionsRepository = getCustomRepository(TransactionsRepository);
 
-    const transactions = importTransaction.execute(request.file.path);
+    const transactions = await importTransaction.execute(request.file.path);
+    const balance = await transactionsRepository.getBalance();
 
-    return response.json(transactions);
+    return response.json({ transactions, balance });
   },
 );
 

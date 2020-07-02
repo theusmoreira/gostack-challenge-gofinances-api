@@ -18,16 +18,10 @@ class ImportTransactionsService {
   async execute(filePath: string): Promise<Transaction[]> {
     const transactionsRepository = getCustomRepository(TransactionRepository);
     const categoriesRepository = getRepository(Category);
-<<<<<<< HEAD
-
-=======
->>>>>>> 2a62fa0a3aea625f57aeb16fd6db46dd7f7e761d
     const contactReadStream = fs.createReadStream(filePath);
 
     const parsers = csvParser({
       from_line: 2,
-      ltrim: true,
-      rtrim: true,
     });
 
     const parseCSV = contactReadStream.pipe(parsers);
@@ -35,7 +29,7 @@ class ImportTransactionsService {
     const transactions: CSVTransaction[] = [];
     const categories: string[] = [];
 
-    parseCSV.on('data', line => {
+    parseCSV.on('data', async line => {
       const [title, type, value, category] = line.map((cell: string) =>
         cell.trim(),
       );
@@ -60,7 +54,6 @@ class ImportTransactionsService {
         title: In(categories),
       },
     });
-<<<<<<< HEAD
 
     const categoriesTitle = existentCategories.map(
       (category: Category) => category.title,
@@ -68,13 +61,6 @@ class ImportTransactionsService {
 
     const addCategoryTitle = categories
       .filter(category => !categoriesTitle.includes(category))
-=======
-    const existentCategoriesTitle = existentCategories.map(
-      (category: Category) => category.title,
-    );
-    const addCategoryTitle = categories
-      .filter(category => !existentCategoriesTitle.includes(category))
->>>>>>> 2a62fa0a3aea625f57aeb16fd6db46dd7f7e761d
       .filter((value, index, self) => self.indexOf(value) === index);
 
     const newCategories = categoriesRepository.create(
