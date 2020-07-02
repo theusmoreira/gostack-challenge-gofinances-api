@@ -18,6 +18,7 @@ class ImportTransactionsService {
   async execute(filePath: string): Promise<Transaction[]> {
     const transactionsRepository = getCustomRepository(TransactionRepository);
     const categoriesRepository = getRepository(Category);
+
     const contactReadStream = fs.createReadStream(filePath);
 
     const parsers = csvParser({
@@ -56,11 +57,13 @@ class ImportTransactionsService {
         title: In(categories),
       },
     });
-    const existentCategoriesTitle = existentCategories.map(
+
+    const categoriesTitle = existentCategories.map(
       (category: Category) => category.title,
     );
+
     const addCategoryTitle = categories
-      .filter(category => !existentCategoriesTitle.includes(category))
+      .filter(category => !categoriesTitle.includes(category))
       .filter((value, index, self) => self.indexOf(value) === index);
 
     const newCategories = categoriesRepository.create(
@@ -71,7 +74,7 @@ class ImportTransactionsService {
 
     await categoriesRepository.save(newCategories);
 
-    const finalCategories = [...newCategories, ...existentCategoriesTitle];
+    const finalCategories = [...newCategories, ...existentCategories];
 
     const createdTransactions = transactionsRepository.create(
       transactions.map(transaction => ({
@@ -79,7 +82,7 @@ class ImportTransactionsService {
         type: transaction.type,
         value: transaction.value,
         category: finalCategories.find(
-          category => category.title == transaction.category,
+          category => category.title === transaction.category,
         ),
       })),
     );
